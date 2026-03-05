@@ -10,10 +10,15 @@ class RalphReview < Formula
   def install
     system "bun", "install", "--frozen-lockfile"
 
-    # Temporarily rename native dylibs so Homebrew's post-install relocation
-    # step skips them (install_name_tool fails because the header lacks padding
-    # for the longer Cellar path). They are restored in post_install.
-    Dir.glob("node_modules/**/*.dylib").each { |f| File.rename(f, "#{f}.raw") } if OS.mac?
+    # Compress native dylibs so Homebrew's post-install relocation step
+    # cannot detect them as Mach-O files (install_name_tool fails because
+    # the header lacks padding for the longer Cellar path).
+    # They are decompressed in post_install.
+    if OS.mac?
+      Dir.glob("node_modules/**/*.dylib").each do |f|
+        system "gzip", "-9", f
+      end
+    end
 
     libexec.install Dir["*"]
 
@@ -33,8 +38,8 @@ class RalphReview < Formula
   end
 
   def post_install
-    Dir.glob("#{libexec}/**/*.dylib.raw").each do |f|
-      File.rename(f, f.delete_suffix(".raw"))
+    Dir.glob("#{libexec}/**/*.dylib.gz").each do |f|
+      system "gunzip", f
     end
   end
 
