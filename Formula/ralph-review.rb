@@ -8,6 +8,7 @@ class RalphReview < Formula
   depends_on "oven-sh/bun/bun"
 
   def install
+    system "bun", "install", "--frozen-lockfile"
     libexec.install Dir["*"]
 
     bun = Formula["oven-sh/bun/bun"].opt_bin/"bun"
@@ -23,12 +24,6 @@ class RalphReview < Formula
       #!/bin/bash
       exec "#{bun}" run "#{libexec}/src/cli-rrr.ts" "$@"
     EOS
-  end
-
-  def post_install
-    cd libexec do
-      system Formula["oven-sh/bun/bun"].opt_bin/"bun", "install", "--frozen-lockfile"
-    end
   end
 
   test do
