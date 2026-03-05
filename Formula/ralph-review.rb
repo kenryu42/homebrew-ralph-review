@@ -7,6 +7,9 @@ class RalphReview < Formula
 
   depends_on "oven-sh/bun/bun"
 
+  # Prevent Homebrew from relocating native dylibs in node_modules
+  skip_clean "libexec"
+
   def install
     system "bun", "install", "--frozen-lockfile"
     libexec.install Dir["*"]
