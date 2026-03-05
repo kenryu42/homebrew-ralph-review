@@ -7,24 +7,28 @@ class RalphReview < Formula
 
   depends_on "oven-sh/bun/bun"
 
-  # Prevent Homebrew from relocating native dylibs in node_modules
-  skip_clean "libexec"
-
   def install
-    system "bun", "install", "--frozen-lockfile"
     libexec.install Dir["*"]
+
+    bun = Formula["oven-sh/bun/bun"].opt_bin/"bun"
 
     %w[rr ralph-review].each do |cmd|
       (bin/cmd).write <<~EOS
         #!/bin/bash
-        exec "#{Formula["oven-sh/bun/bun"].opt_bin}/bun" run "#{libexec}/src/cli.ts" "$@"
+        exec "#{bun}" run "#{libexec}/src/cli.ts" "$@"
       EOS
     end
 
     (bin/"rrr").write <<~EOS
       #!/bin/bash
-      exec "#{Formula["oven-sh/bun/bun"].opt_bin}/bun" run "#{libexec}/src/cli-rrr.ts" "$@"
+      exec "#{bun}" run "#{libexec}/src/cli-rrr.ts" "$@"
     EOS
+  end
+
+  def post_install
+    cd libexec do
+      system Formula["oven-sh/bun/bun"].opt_bin/"bun", "install", "--frozen-lockfile"
+    end
   end
 
   test do
